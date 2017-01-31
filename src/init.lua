@@ -3,21 +3,39 @@ local argcheck = require 'argcheck'
 local buffer = torch.class('buffer')
 
 buffer.__init = argcheck{
-	doc = [[
+  doc = [[
 <a name="buffer">
 # buffer(@ARGP)
 Create a buffer with x number of elements.
 
 @ARGT
 ]],
-	{name='self', type='buffer'},
-	{name='length', type='number',
-	 doc='The number of elements that the buffer should have'},
-	call = function(self, length)
+  {name='self', type='buffer'},
+  {name='length', type='number',
+   doc='The number of elements that the buffer should have'},
+  call = function(self, length)
+  assert(length > 0, 'The length shold be >= 1')
 
   self._position = 0
   self._no_elments = length
   self._data = {}
+end}
+
+buffer.__init = argcheck{
+  doc = [[
+You can provide a table with all the initial values as well
+@ARGT
+]],
+  overload=buffer.__init,
+  {name='self', type='buffer'},
+  {name='tbl', type='table',
+   doc='A table with the elements'},
+  call = function(self, tbl)
+  assert(#tbl > 0, 'The length shold be >= 1')
+
+  self._position = #tbl
+  self._no_elments = #tbl
+  self._data = tbl
 end}
 
 buffer.add = argcheck{
@@ -95,27 +113,33 @@ Retrieves a tensor with the x-last elements
     {name='self', type='buffer'},
     {name='no', type='number', opt=true,
      doc='The number of elements back to include in the calculation'},
-    call=function(self, no)
+    {name='skip_order', type='boolean', default=false,
+     doc='If the order of the data is to be preserved, skip for performance'},
+    call=function(self, no, skip_order)
   -- This could benefit from some speedup
   if (self._position < 1) then
     return torch.DoubleTensor();
   end
 
-  local data4tensor = self._data
+  local data4tensor = {}
   if (no) then
     if (no > #self._data) then
       no = #self._data
     end
+  else
+    no = #self._data
+  end
 
-    local pos = self._position
-    data4tensor = {}
+  if (no == #self._data and skip_order) then
+    data4tensor = self._data
+  else
+    local pos = self._position + 1
     for i=1,no do
-      data4tensor[#data4tensor + 1] = self._data[pos]
-
-      pos = pos - 1
-      if (pos < 1) then
-        pos = #self._data
+      if (pos > #self._data) then
+        pos = 1
       end
+      data4tensor[#data4tensor + 1] = self._data[pos]
+      pos = pos + 1
     end
   end
 
@@ -156,7 +180,7 @@ Calculate the buffer standard deviation
 end}
 
 buffer.__tostring__ = argcheck{
-	doc=[[
+  doc=[[
 <a name="buffer.__tostring__">
 # __tostring__(@ARGP)
 Outputs a buffer to a string
