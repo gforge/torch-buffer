@@ -17,7 +17,7 @@ dependencies = {
     "lua >= 5.1",
     "torch >= 7.0",
     "argcheck >= 2.0",
-    "torch-dir-loader >= 0.5"
+    "torch-dir-loader >= 0.6"
 }
 build = {
    type = "cmake",
