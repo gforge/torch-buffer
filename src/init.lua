@@ -158,7 +158,10 @@ Calculate the buffer mean
   {name='no', type='number', opt=true,
    doc='The number of elements back to include in the calculation'},
   call=function(self, no)
-  local dataTnsr = self:get_tensor(no)
+  local dataTnsr = self:get_tensor{
+    no = no,
+    skip_order = true,
+  }
   return dataTnsr:mean()
 end}
 
@@ -175,7 +178,10 @@ Calculate the buffer standard deviation
   {name='no', type='number', opt=true,
    doc='The number of elements back to include in the calculation'},
   call=function(self, no)
-  local dataTnsr = self:get_tensor(no)
+  local dataTnsr = self:get_tensor{
+    no = no,
+    skip_order = true,
+  }
   return dataTnsr:std()
 end}
 
